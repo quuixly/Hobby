@@ -1,0 +1,2 @@
+# PyTorch-ClassificationArchitecture
+In this project, I'm building a custom classification architecture from scratch. It also includes code snippets serving as a PyTorch refresher and a sandbox for small experiments.
