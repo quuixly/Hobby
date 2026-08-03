@@ -4,9 +4,13 @@ version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.11"
-dependencies = ["torch",
-                "torchvision",
-                "numpy"]
+dependencies = [
+    "torch",
+    "torchvision",
+    "numpy",
+    "datasets>=5.0.1",
+    "evaluate>=0.4.6",
+]
 
 
 [[tool.uv.index]]
