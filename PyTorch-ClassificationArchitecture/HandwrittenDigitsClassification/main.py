@@ -5,6 +5,7 @@ import torch.optim as optim
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
 from datasets import load_dataset
+import evaluate
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -42,7 +43,8 @@ class Trainer:
         for epoch in range(num_epoch):
             pbar = tqdm.tqdm(dataloader, desc = f"Epoch {epoch}/{num_epoch}")
             total_loss = 0
-            for batch in pbar:
+
+            for idx, batch in enumerate(pbar):
                 inputs = batch["image"].float()
                 outputs = batch["label"]
 
@@ -50,16 +52,32 @@ class Trainer:
                 predictions = self.model(inputs)
                 loss = self.criteria(predictions, outputs)
 
-                total_loss += loss
+                total_loss += loss.item()
 
                 loss.backward()
                 self.optimizer.step()
 
-            pbar.set_postfix(loss=f"total_loss")
+                if idx > 0:
+                    pbar.set_postfix(loss=f"{total_loss / idx}")
         
 
 model = NeuralNetwork().to(device)
-optimier = optim.AdamW(model.parameters())
+optimier = optim.AdamW(model.parameters(), lr=0.0001)
 criteria = nn.CrossEntropyLoss()
 trainer = Trainer(model, optimier, criteria)
 trainer.train(train_loader, 5)
+
+
+metric = evaluate.load("accuracy")
+model.eval()
+pbar = tqdm.tqdm(test_loader)
+
+with torch.no_grad():
+    for batch in pbar:
+        inputs = batch["image"].float()
+        outputs = batch["label"]
+
+        predictions = model(inputs).argmax(dim=-1)
+        metric.add_batch(predictions=predictions, references=outputs)
+
+print(metric.compute())
